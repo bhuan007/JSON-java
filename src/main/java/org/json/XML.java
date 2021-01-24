@@ -30,6 +30,8 @@ import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.Scanner;
 
 
 /**
@@ -598,6 +600,71 @@ public class XML {
         return toJSONObject(reader, XMLParserConfiguration.ORIGINAL);
     }
 
+    // Extract sub-object from XML to JSON File.
+    public static JSONObject toJSONObject(Reader reader, JSONPointer path) {
+        Scanner scanner = new Scanner(reader);
+        StringBuilder sb = new StringBuilder();
+        while (scanner.hasNextLine()) {
+            sb.append(scanner.nextLine());
+        }
+        scanner.close();
+
+        String xml = sb.toString();
+        JSONObject obj = JSONML.toJSONObject(xml);
+
+        return (JSONObject) path.queryFrom(obj);
+    }
+
+    public static JSONObject toJSONObject(Reader reader, JSONPointer path, JSONObject replacement) {
+        Scanner xmlScanner = new Scanner(reader);
+        StringBuilder sb = new StringBuilder();
+        while (xmlScanner.hasNextLine()) {
+            sb.append(xmlScanner.nextLine());
+        }
+        xmlScanner.close();
+
+        String xml = sb.toString();
+        JSONObject jsonObjectOld = JSONML.toJSONObject(xml);
+
+
+
+        Scanner scanner = new Scanner(path.toString()).useDelimiter("/");
+        LinkedList list = new LinkedList();
+
+        while (scanner.hasNext()) {
+            list.add(scanner.next());
+        }
+
+        if (list.size() == 1) {
+            jsonObjectOld.put((String) list.poll(), replacement);
+            return jsonObjectOld;
+        }
+        else if (list.size() == 0) {
+            return jsonObjectOld;
+        }
+
+        Object inner = jsonObjectOld.get((String) list.poll());
+
+        while (list.size() > 1) {
+            String query = (String) list.poll();
+            if (inner instanceof JSONObject) {
+                inner = ((JSONObject) inner).get(query);
+            }
+            else if (inner instanceof JSONArray) {
+                inner = ((JSONArray) inner).get(Integer.parseInt(query));
+            }
+        }
+
+        if (inner instanceof JSONObject) {
+            ((JSONObject) inner).put((String) list.poll(), replacement);
+        }
+        else if (inner instanceof JSONArray) {
+            ((JSONArray) inner).put(Integer.parseInt((String) list.poll()), replacement);
+        }
+        return jsonObjectOld;
+
+    }
+
     /**
      * Convert a well-formed (but not necessarily valid) XML into a
      * JSONObject. Some information may be lost in this transformation because
@@ -708,6 +775,7 @@ public class XML {
     public static JSONObject toJSONObject(String string, XMLParserConfiguration config) throws JSONException {
         return toJSONObject(new StringReader(string), config);
     }
+
 
     /**
      * Convert a JSONObject into a well-formed, element-normal XML string.
