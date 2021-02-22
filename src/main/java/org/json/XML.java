@@ -744,6 +744,11 @@ public class XML {
                 || val.indexOf('E') > -1 || "-0".equals(val);
     }
 
+    // Milestone4
+
+    public static void toJSONObjectStream(Reader reader) {
+
+    }
 
     /**
      * Convert a well-formed (but not necessarily valid) XML string into a
@@ -812,6 +817,7 @@ public class XML {
 
         String xml = sb.toString();
         JSONObject obj = JSONML.toJSONObject(xml);
+
 
         return (JSONObject) path.queryFrom(obj);
     }

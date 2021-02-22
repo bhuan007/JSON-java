@@ -36,16 +36,13 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.Collection;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.ResourceBundle;
-import java.util.Set;
+import java.util.function.*;
 import java.util.regex.Pattern;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * A JSONObject is an unordered collection of name/value pairs. Its external
@@ -97,10 +94,103 @@ import java.util.regex.Pattern;
  * or <code>null</code>.</li>
  * </ul>
  *
- * @author JSON.org
+ * @author JSON.orgsocial anxiety
  * @version 2016-08-15
  */
 public class JSONObject {
+
+
+    /* Milestone 4 */
+
+    public class JSONStream {
+        Stream<JSONObject> currentStream;
+        JSONObject object;
+        Set<String> keys;
+
+        Stream.Builder<JSONObject> objectStream = Stream.builder();
+
+        public JSONStream(JSONObject object) {
+            this.object = object;
+            this.keys = object.keySet();
+
+            this.objectStream.add(object);
+            recursiveAddToObjectStream(object);
+
+        }
+
+        private void recursiveAddToObjectStream(JSONObject object) {
+            if (object != null) {
+                Set<String> keys = object.keySet();
+
+                for (String key: keys) {
+                    Object inner = object.get(key);
+                    if (inner instanceof JSONObject) {
+                        recursiveAddToObjectStream((JSONObject) inner);
+                        objectStream.add((JSONObject) inner);
+                    }
+                }
+            }
+        }
+
+        public JSONStream filter(Predicate<JSONObject> node) {
+            Stream<JSONObject> streamer;
+            if (this.currentStream != null) {
+                streamer = this.currentStream;
+            }
+            else {
+                streamer = this.objectStream.build();
+            }
+            this.currentStream = streamer.filter(node);
+            return this;
+        }
+
+        public JSONStream map(Function<JSONObject, JSONObject> mapper) {
+            Stream<JSONObject> streamer;
+            if (this.currentStream != null) {
+                streamer = this.currentStream;
+            }
+            else {
+                streamer = this.objectStream.build();
+            }
+            this.currentStream = streamer.map(mapper);
+            return this;
+        }
+
+
+        public List<Object> collect(Collector<Object, ?, List<Object>> collector) {
+            return this.currentStream.collect(collector);
+        }
+
+        public JSONStream forEach(Consumer<JSONObject> consumer) {
+            Stream<JSONObject> streamer;
+            if (this.currentStream != null) {
+                streamer = this.currentStream;
+            }
+            else {
+                streamer = this.objectStream.build();
+            }
+            streamer.forEach(consumer);
+            this.currentStream = streamer;
+            return this;
+        }
+
+        public void printOut() {
+            System.out.println(this.object.toString());
+        }
+
+        public String stringify() {
+            return this.object.toString();
+        }
+
+    }
+
+    public JSONStream toStream() {
+        JSONStream stream = new JSONStream(this);
+        return stream;
+    }
+
+
+
     /**
      * JSONObject.NULL is equivalent to the value that JavaScript calls null,
      * whilst Java's null is equivalent to the value that JavaScript calls
