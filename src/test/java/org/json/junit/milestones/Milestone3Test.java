@@ -12,11 +12,10 @@ import java.util.function.Function;
 
 import static org.junit.Assert.assertEquals;
 
-public class Milestone3Tests {
+public class Milestone3Test {
     @Test
     public void test1() throws FileNotFoundException {
         class KeyTransformer implements Function<String, String> {
-
             @Override
             public String apply(String s) {
                 return "swe262_" + s;

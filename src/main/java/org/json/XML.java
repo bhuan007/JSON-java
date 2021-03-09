@@ -435,6 +435,7 @@ public class XML {
         }
     }
 
+    // Milestone 3
     private static boolean parse(XMLTokener x, JSONObject context, String name, XMLParserConfiguration config, Function<String, String> keyTransformer)
             throws JSONException {
         char c;
@@ -744,7 +745,7 @@ public class XML {
                 || val.indexOf('E') > -1 || "-0".equals(val);
     }
 
-    // Milestone4
+    // Milestone 4
 
     public static void toJSONObjectStream(Reader reader) {
 
@@ -791,9 +792,39 @@ public class XML {
         return toJSONObject(reader, XMLParserConfiguration.ORIGINAL);
     }
 
+    // Milestone 5
+
+    public interface ToJSONCompletedInterface {
+        public void onObjectReturned(JSONObject jsonObject);
+    }
+
+    public interface ToJSONExceptionInterface {
+        public void onException(Exception e);
+    }
+
+    public static void toJSONObject(Reader reader, ToJSONCompletedInterface toJSONInterface, ToJSONExceptionInterface toJSONExceptionInterface) {
+
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    JSONObject object = toJSONObject(reader, XMLParserConfiguration.ORIGINAL);
+                    toJSONInterface.onObjectReturned(object);
+                }
+                catch (Exception e) {
+                    toJSONExceptionInterface.onException(e);
+                }
+
+            }
+        });
+
+        thread.start();
+    }
 
 
 
+
+    // Milestone 3
     public static JSONObject toJSONObject(Reader reader, Function<String, String> keyTransformer) {
         JSONObject jo = new JSONObject();
         XMLTokener x = new XMLTokener(reader);
@@ -806,6 +837,7 @@ public class XML {
         return jo;
     }
 
+    // Milestone 2
     // Extract sub-object from XML to JSON File.
     public static JSONObject toJSONObject(Reader reader, JSONPointer path) {
         Scanner scanner = new Scanner(reader);
@@ -822,6 +854,8 @@ public class XML {
         return (JSONObject) path.queryFrom(obj);
     }
 
+
+    // Milestone 2
     public static JSONObject toJSONObject(Reader reader, JSONPointer path, JSONObject replacement) {
         Scanner xmlScanner = new Scanner(reader);
         StringBuilder sb = new StringBuilder();

@@ -11,7 +11,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.Reader;
 
-public class Milestone2Tests {
+public class Milestone2Test {
     // Extracts sub object from xml to json file
     @Test
     public void testtoJSONObjectOne() throws FileNotFoundException {
